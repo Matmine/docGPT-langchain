@@ -1,0 +1,68 @@
+import re
+import requests
+from bs4 import BeautifulSoup
+import csv
+
+
+#####################################################################
+#                                                                   #
+# Récup toutes les URLs dispos sur le wiki fextralife hollow knight #
+#                                                                   #
+#####################################################################
+
+
+
+# Define the URL to visit
+sitemap_fextralife = "https://hollowknight.wiki.fextralife.com/sitemap.xml"
+
+# Use BSoup to get all Urls from sitemap
+response = requests.get(sitemap_fextralife)
+soup = BeautifulSoup(response.content, "html.parser")
+All_Urls = soup.findAll("loc")
+All_Urls_Cleaned = []
+
+for url in All_Urls :
+    url= str(url).replace("<loc>", "")
+    url= str(url).replace("</loc>", "")
+    All_Urls_Cleaned.append(url)
+
+print(type(All_Urls_Cleaned))
+print(All_Urls_Cleaned)
+
+
+#########################################################################
+#                                                                       #
+# Scrap toutes les URLs récupérées sur le wiki fextralife hollow knight #
+#                                                                       #
+#########################################################################
+
+# Input string, returns string without unwanted structures
+def cleanText(text):
+    clean_text = text
+    
+    string_list_to_delete = ["/s", "\n", "\\", "\xa0"]
+    
+    for str in string_list_to_delete :
+     clean_text = clean_text.replace(str, "")
+
+    clean_text = clean_text.replace("\u2666", ",")
+    return clean_text
+
+# For each Url, get the corresponding text containing wiki info. Add it to a .txt file
+counter = 0
+for url in All_Urls_Cleaned:
+
+    counter += 1
+    print("------------------------------------------------------------------------------------------------------------------")
+    print(f"URL in treatment: {url} // {counter}/{len(All_Urls_Cleaned)}")
+    print("------------------------------------------------------------------------------------------------------------------")
+
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    result = soup.find(id="wiki-content-block")
+    text = result.text
+    text_clean = cleanText(text)
+    # Open the file in append mode
+    with open('Information_scraper\Hollow_knight_fextralife.txt', 'a') as file:
+        # Add the string to the file with two line breaks
+        file.write(text_clean + '\n\n')
